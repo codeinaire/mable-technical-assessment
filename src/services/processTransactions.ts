@@ -232,7 +232,12 @@ export function processTransactions(
   )
 
   return {
-    ...(processedTransactions.count > 0 && { processedTransactions }),
+    ...(processedTransactions.count > 0 && {
+      processedTransactions: {
+        ...processedTransactions,
+        amountTranferred: (processedTransactions.amountTranferred / 100).toFixed(2),
+      },
+    }),
     invalidRows,
     rejectedRows,
   }

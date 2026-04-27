@@ -44,12 +44,12 @@ describe("processTransactions", () => {
 
   it("processes valid transactions and updates balances", () => {
     const company = seedCompanyAndAccounts(db, [
-      { accountNumber: ACCOUNT_A, balanceCents: 500000 },
-      { accountNumber: ACCOUNT_B, balanceCents: 100000 },
+      { accountNumber: ACCOUNT_A, balanceCents: 500_000 },
+      { accountNumber: ACCOUNT_B, balanceCents: 100_000 },
     ])
 
     const parsedCsv: ParsedCsv = {
-      valid: [{ from: ACCOUNT_A, to: ACCOUNT_B, amount: 50000, rowNumber: 1 }],
+      valid: [{ from: ACCOUNT_A, to: ACCOUNT_B, amount: 50_000, rowNumber: 1 }],
       invalid: [],
     }
 
@@ -57,22 +57,26 @@ describe("processTransactions", () => {
 
     expect(result.processedTransactions).toEqual({
       count: 1,
-      amountTranferred: 50000,
+      amountTranferred: "500.00",
     })
     expect(result.rejectedRows).toHaveLength(0)
     expect(result.invalidRows).toHaveLength(0)
 
-    expect(Balance.getByAccountNumber(ACCOUNT_A, db)?.balanceCents).toBe(450000)
-    expect(Balance.getByAccountNumber(ACCOUNT_B, db)?.balanceCents).toBe(150000)
+    expect(Balance.getByAccountNumber(ACCOUNT_A, db)?.balanceCents).toBe(
+      450_000,
+    )
+    expect(Balance.getByAccountNumber(ACCOUNT_B, db)?.balanceCents).toBe(
+      150_000,
+    )
   })
 
   it("rejects a transaction when the from account is not found", () => {
     const company = seedCompanyAndAccounts(db, [
-      { accountNumber: ACCOUNT_B, balanceCents: 100000 },
+      { accountNumber: ACCOUNT_B, balanceCents: 100_000 },
     ])
 
     const parsedCsv: ParsedCsv = {
-      valid: [{ from: ACCOUNT_A, to: ACCOUNT_B, amount: 10000, rowNumber: 1 }],
+      valid: [{ from: ACCOUNT_A, to: ACCOUNT_B, amount: 10_000, rowNumber: 1 }],
       invalid: [],
     }
 
@@ -83,13 +87,15 @@ describe("processTransactions", () => {
     expect(result.rejectedRows[0].errors[0].path).toBe("from")
     expect(result.rejectedRows[0].errors[0].message).toContain(ACCOUNT_A)
 
-    expect(Balance.getByAccountNumber(ACCOUNT_B, db)?.balanceCents).toBe(100000)
+    expect(Balance.getByAccountNumber(ACCOUNT_B, db)?.balanceCents).toBe(
+      100_000,
+    )
   })
 
   it("rejects a transaction when balance would go below zero", () => {
     const company = seedCompanyAndAccounts(db, [
-      { accountNumber: ACCOUNT_A, balanceCents: 1000 },
-      { accountNumber: ACCOUNT_B, balanceCents: 100000 },
+      { accountNumber: ACCOUNT_A, balanceCents: 1_000 },
+      { accountNumber: ACCOUNT_B, balanceCents: 100_000 },
     ])
 
     const parsedCsv: ParsedCsv = {
@@ -102,12 +108,12 @@ describe("processTransactions", () => {
     expect(result.rejectedRows).toHaveLength(1)
     expect(result.rejectedRows[0].errors[0].path).toBe("amount")
 
-    expect(Balance.getByAccountNumber(ACCOUNT_A, db)?.balanceCents).toBe(1000)
+    expect(Balance.getByAccountNumber(ACCOUNT_A, db)?.balanceCents).toBe(1_000)
   })
 
   it("passes through invalid rows from CSV parsing", () => {
     const company = seedCompanyAndAccounts(db, [
-      { accountNumber: ACCOUNT_A, balanceCents: 500000 },
+      { accountNumber: ACCOUNT_A, balanceCents: 500_000 },
     ])
 
     const parsedCsv: ParsedCsv = {
@@ -129,14 +135,14 @@ describe("processTransactions", () => {
 
   it("processes multiple transactions sequentially and updates balances correctly", () => {
     const company = seedCompanyAndAccounts(db, [
-      { accountNumber: ACCOUNT_A, balanceCents: 500000 },
-      { accountNumber: ACCOUNT_B, balanceCents: 100000 },
+      { accountNumber: ACCOUNT_A, balanceCents: 500_000 },
+      { accountNumber: ACCOUNT_B, balanceCents: 100_000 },
     ])
 
     const parsedCsv: ParsedCsv = {
       valid: [
-        { from: ACCOUNT_A, to: ACCOUNT_B, amount: 100000, rowNumber: 1 },
-        { from: ACCOUNT_A, to: ACCOUNT_B, amount: 200000, rowNumber: 2 },
+        { from: ACCOUNT_A, to: ACCOUNT_B, amount: 100_000, rowNumber: 1 },
+        { from: ACCOUNT_A, to: ACCOUNT_B, amount: 200_000, rowNumber: 2 },
       ],
       invalid: [],
     }
@@ -145,23 +151,27 @@ describe("processTransactions", () => {
 
     expect(result.processedTransactions).toEqual({
       count: 2,
-      amountTranferred: 300000,
+      amountTranferred: "3000.00",
     })
 
-    expect(Balance.getByAccountNumber(ACCOUNT_A, db)?.balanceCents).toBe(200000)
-    expect(Balance.getByAccountNumber(ACCOUNT_B, db)?.balanceCents).toBe(400000)
+    expect(Balance.getByAccountNumber(ACCOUNT_A, db)?.balanceCents).toBe(
+      200_000,
+    )
+    expect(Balance.getByAccountNumber(ACCOUNT_B, db)?.balanceCents).toBe(
+      400_000,
+    )
   })
 
   it("handles a mix of valid, invalid, and rejected rows", () => {
     const company = seedCompanyAndAccounts(db, [
-      { accountNumber: ACCOUNT_A, balanceCents: 500000 },
-      { accountNumber: ACCOUNT_B, balanceCents: 100000 },
+      { accountNumber: ACCOUNT_A, balanceCents: 500_000 },
+      { accountNumber: ACCOUNT_B, balanceCents: 100_000 },
     ])
 
     const parsedCsv: ParsedCsv = {
       valid: [
-        { from: ACCOUNT_A, to: ACCOUNT_B, amount: 50000, rowNumber: 1 },
-        { from: ACCOUNT_C, to: ACCOUNT_B, amount: 10000, rowNumber: 2 },
+        { from: ACCOUNT_A, to: ACCOUNT_B, amount: 50_000, rowNumber: 1 },
+        { from: ACCOUNT_C, to: ACCOUNT_B, amount: 10_000, rowNumber: 2 },
       ],
       invalid: [
         {
@@ -176,7 +186,7 @@ describe("processTransactions", () => {
 
     expect(result.processedTransactions).toEqual({
       count: 1,
-      amountTranferred: 50000,
+      amountTranferred: "500.00",
     })
     expect(result.rejectedRows).toHaveLength(1)
     expect(result.invalidRows).toHaveLength(1)
@@ -184,12 +194,12 @@ describe("processTransactions", () => {
 
   it("creates a transfer batch with processed status on full success", () => {
     const company = seedCompanyAndAccounts(db, [
-      { accountNumber: ACCOUNT_A, balanceCents: 500000 },
-      { accountNumber: ACCOUNT_B, balanceCents: 100000 },
+      { accountNumber: ACCOUNT_A, balanceCents: 500_000 },
+      { accountNumber: ACCOUNT_B, balanceCents: 100_000 },
     ])
 
     const parsedCsv: ParsedCsv = {
-      valid: [{ from: ACCOUNT_A, to: ACCOUNT_B, amount: 10000, rowNumber: 1 }],
+      valid: [{ from: ACCOUNT_A, to: ACCOUNT_B, amount: 10_000, rowNumber: 1 }],
       invalid: [],
     }
 
@@ -203,11 +213,11 @@ describe("processTransactions", () => {
   it("sets batch status to failed when all rows are rejected", () => {
     const company = seedCompanyAndAccounts(db, [
       { accountNumber: ACCOUNT_A, balanceCents: 100 },
-      { accountNumber: ACCOUNT_B, balanceCents: 100000 },
+      { accountNumber: ACCOUNT_B, balanceCents: 10_0000 },
     ])
 
     const parsedCsv: ParsedCsv = {
-      valid: [{ from: ACCOUNT_A, to: ACCOUNT_B, amount: 50000, rowNumber: 1 }],
+      valid: [{ from: ACCOUNT_A, to: ACCOUNT_B, amount: 50_000, rowNumber: 1 }],
       invalid: [],
     }
 
@@ -219,14 +229,14 @@ describe("processTransactions", () => {
 
   it("sets batch status to partially_processed with mixed results", () => {
     const company = seedCompanyAndAccounts(db, [
-      { accountNumber: ACCOUNT_A, balanceCents: 500000 },
-      { accountNumber: ACCOUNT_B, balanceCents: 100000 },
+      { accountNumber: ACCOUNT_A, balanceCents: 500_000 },
+      { accountNumber: ACCOUNT_B, balanceCents: 100_000 },
     ])
 
     const parsedCsv: ParsedCsv = {
       valid: [
-        { from: ACCOUNT_A, to: ACCOUNT_B, amount: 10000, rowNumber: 1 },
-        { from: ACCOUNT_C, to: ACCOUNT_B, amount: 10000, rowNumber: 2 },
+        { from: ACCOUNT_A, to: ACCOUNT_B, amount: 10_000, rowNumber: 1 },
+        { from: ACCOUNT_C, to: ACCOUNT_B, amount: 10_000, rowNumber: 2 },
       ],
       invalid: [],
     }
@@ -239,8 +249,8 @@ describe("processTransactions", () => {
 
   it("creates transaction records for successful transfers", () => {
     const company = seedCompanyAndAccounts(db, [
-      { accountNumber: ACCOUNT_A, balanceCents: 500000 },
-      { accountNumber: ACCOUNT_B, balanceCents: 100000 },
+      { accountNumber: ACCOUNT_A, balanceCents: 500_000 },
+      { accountNumber: ACCOUNT_B, balanceCents: 100_000 },
     ])
 
     const parsedCsv: ParsedCsv = {
@@ -252,16 +262,16 @@ describe("processTransactions", () => {
 
     const txns = db.select().from(transactions).all()
     expect(txns).toHaveLength(1)
-    expect(txns[0].amountCents).toBe(25000)
+    expect(txns[0].amountCents).toBe(25_000)
   })
 
   it("creates rejected transfer records in the database", () => {
     const company = seedCompanyAndAccounts(db, [
-      { accountNumber: ACCOUNT_B, balanceCents: 100000 },
+      { accountNumber: ACCOUNT_B, balanceCents: 100_000 },
     ])
 
     const parsedCsv: ParsedCsv = {
-      valid: [{ from: ACCOUNT_A, to: ACCOUNT_B, amount: 10000, rowNumber: 1 }],
+      valid: [{ from: ACCOUNT_A, to: ACCOUNT_B, amount: 1_0000, rowNumber: 1 }],
       invalid: [],
     }
 
@@ -271,5 +281,70 @@ describe("processTransactions", () => {
     expect(rejected).toHaveLength(1)
     expect(rejected[0].accountNumberFrom).toBe(ACCOUNT_A)
     expect(rejected[0].accountNumberTo).toBe(ACCOUNT_B)
+  })
+
+  it("calculates the example mable_transactions.csv accurately", () => {
+    const company = seedCompanyAndAccounts(db, [
+      { accountNumber: "1111234522226789", balanceCents: 500_000 },
+      { accountNumber: "1111234522221234", balanceCents: 1_000_000 },
+      { accountNumber: "2222123433331212", balanceCents: 55_000 },
+      { accountNumber: "1212343433335665", balanceCents: 12_0000 },
+      { accountNumber: "3212343433335755", balanceCents: 5_000_000 },
+    ])
+
+    const parsedCsv: ParsedCsv = {
+      valid: [
+        {
+          from: "1111234522226789",
+          to: "1212343433335665",
+          amount: 50000,
+          rowNumber: 1,
+        },
+        {
+          from: "3212343433335755",
+          to: "2222123433331212",
+          amount: 100000,
+          rowNumber: 2,
+        },
+        {
+          from: "3212343433335755",
+          to: "1111234522226789",
+          amount: 32050,
+          rowNumber: 3,
+        },
+        {
+          from: "1111234522221234",
+          to: "1212343433335665",
+          amount: 2560,
+          rowNumber: 4,
+        },
+      ],
+      invalid: [],
+    }
+
+    const result = processTransactions(company.id, parsedCsv, db)
+
+    expect(result.processedTransactions).toEqual({
+      count: 4,
+      amountTranferred: "1846.10",
+    })
+    expect(result.rejectedRows).toHaveLength(0)
+    expect(result.invalidRows).toHaveLength(0)
+
+    expect(
+      Balance.getByAccountNumber("1111234522226789", db)?.balanceCents,
+    ).toBe(48_2050)
+    expect(
+      Balance.getByAccountNumber("1111234522221234", db)?.balanceCents,
+    ).toBe(997_440)
+    expect(
+      Balance.getByAccountNumber("2222123433331212", db)?.balanceCents,
+    ).toBe(155_000)
+    expect(
+      Balance.getByAccountNumber("1212343433335665", db)?.balanceCents,
+    ).toBe(172_560)
+    expect(
+      Balance.getByAccountNumber("3212343433335755", db)?.balanceCents,
+    ).toBe(4_867_950)
   })
 })

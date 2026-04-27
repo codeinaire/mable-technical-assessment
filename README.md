@@ -25,7 +25,7 @@ curl http://localhost:3000/api/v1/health-check
 ### Upload transactions
 
 ```bash
-curl -F "file=@./mable_transactions.csv;type=text/csv" http://localhost:3000/api/v1/upload/1
+curl -F "file=@./mable_transactions.csv;type=text/csv" http://localhost:3000/api/v1/upload/transactions/1
 ```
 
 The CSV format is `from,to,amount` with no header row:
