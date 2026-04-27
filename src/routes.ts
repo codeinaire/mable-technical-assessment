@@ -1,7 +1,10 @@
 import { Hono } from "hono"
 import { HTTPException } from "hono/http-exception"
 import { createDb } from "./db/index.js"
-import { processTransactions } from "./services/processTransactions.js"
+import {
+  TransactionProcessor,
+  TransactionProcessorError,
+} from "./services/processTransactions.js"
 import { parseAndValidateCsv } from "./utilities/parseAndValidateCsv.js"
 
 const db = createDb()
@@ -32,12 +35,15 @@ routes.post("/api/v1/upload/transactions/:companyId", async (c) => {
 
     const csv = await file.text()
     const parsedCsv = parseAndValidateCsv(csv)
-    const result = processTransactions(companyId, parsedCsv, db)
+    const result = new TransactionProcessor(companyId, parsedCsv, db).run()
     return c.json(result)
   } catch (error: unknown) {
     console.error("Upload failed:", error)
     if (error instanceof HTTPException) {
       return c.json({ error: error.message }, error.status)
+    }
+    if (error instanceof TransactionProcessorError) {
+      return c.json({ error: error.message }, 404)
     }
     if (error instanceof Error) {
       return c.json({ error: error.message }, 500)

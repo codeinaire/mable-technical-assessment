@@ -9,7 +9,8 @@
     "test:run": "vitest run",
     "db:seed": "tsx --env-file=.env src/db/seed.ts",
     "db:migrate": "drizzle-kit generate && drizzle-kit migrate",
-    "db:setup": "mkdir -p db-file && npm run db:migrate && npm run db:seed"
+    "db:setup": "mkdir -p db-file && npm run db:migrate && npm run db:seed",
+    "db:reset": "rm -rf db-file drizzle && npm run db:setup"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.0",

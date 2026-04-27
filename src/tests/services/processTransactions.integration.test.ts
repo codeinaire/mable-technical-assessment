@@ -3,13 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { DbOrTx } from "../../db/index.js"
 import {
   rejectedTransfers,
+  TransferBatchStatus,
   transactions,
   transferBatches,
 } from "../../db/tables.js"
 import { Account } from "../../models/Account.js"
 import { Balance } from "../../models/Balance.js"
 import { Company } from "../../models/Company.js"
-import { processTransactions } from "../../services/processTransactions.js"
+import { TransactionProcessor } from "../../services/processTransactions.js"
 import type { ParsedCsv } from "../../types/csv.js"
 import { createTestDb } from "../helpers/testDb.js"
 
@@ -53,7 +54,7 @@ describe("processTransactions", () => {
       invalid: [],
     }
 
-    const result = processTransactions(company.id, parsedCsv, db)
+    const result = new TransactionProcessor(company.id, parsedCsv, db).run()
 
     expect(result.processedTransactions).toEqual({
       count: 1,
@@ -80,7 +81,7 @@ describe("processTransactions", () => {
       invalid: [],
     }
 
-    const result = processTransactions(company.id, parsedCsv, db)
+    const result = new TransactionProcessor(company.id, parsedCsv, db).run()
 
     expect(result.processedTransactions).toBeUndefined()
     expect(result.rejectedRows).toHaveLength(1)
@@ -99,11 +100,11 @@ describe("processTransactions", () => {
     ])
 
     const parsedCsv: ParsedCsv = {
-      valid: [{ from: ACCOUNT_A, to: ACCOUNT_B, amount: 5000, rowNumber: 1 }],
+      valid: [{ from: ACCOUNT_A, to: ACCOUNT_B, amount: 5_000, rowNumber: 1 }],
       invalid: [],
     }
 
-    const result = processTransactions(company.id, parsedCsv, db)
+    const result = new TransactionProcessor(company.id, parsedCsv, db).run()
 
     expect(result.rejectedRows).toHaveLength(1)
     expect(result.rejectedRows[0].errors[0].path).toBe("amount")
@@ -127,7 +128,7 @@ describe("processTransactions", () => {
       ],
     }
 
-    const result = processTransactions(company.id, parsedCsv, db)
+    const result = new TransactionProcessor(company.id, parsedCsv, db).run()
 
     expect(result.invalidRows).toHaveLength(1)
     expect(result.processedTransactions).toBeUndefined()
@@ -147,7 +148,7 @@ describe("processTransactions", () => {
       invalid: [],
     }
 
-    const result = processTransactions(company.id, parsedCsv, db)
+    const result = new TransactionProcessor(company.id, parsedCsv, db).run()
 
     expect(result.processedTransactions).toEqual({
       count: 2,
@@ -182,7 +183,7 @@ describe("processTransactions", () => {
       ],
     }
 
-    const result = processTransactions(company.id, parsedCsv, db)
+    const result = new TransactionProcessor(company.id, parsedCsv, db).run()
 
     expect(result.processedTransactions).toEqual({
       count: 1,
@@ -203,11 +204,11 @@ describe("processTransactions", () => {
       invalid: [],
     }
 
-    processTransactions(company.id, parsedCsv, db)
+    new TransactionProcessor(company.id, parsedCsv, db).run()
 
     const batch = db.select().from(transferBatches).all()
     expect(batch).toHaveLength(1)
-    expect(batch[0].status).toBe("processed")
+    expect(batch[0].status).toBe(TransferBatchStatus.PROCESSED)
   })
 
   it("sets batch status to failed when all rows are rejected", () => {
@@ -221,10 +222,10 @@ describe("processTransactions", () => {
       invalid: [],
     }
 
-    processTransactions(company.id, parsedCsv, db)
+    new TransactionProcessor(company.id, parsedCsv, db).run()
 
     const batch = db.select().from(transferBatches).all()
-    expect(batch[0].status).toBe("failed")
+    expect(batch[0].status).toBe(TransferBatchStatus.FAILED)
   })
 
   it("sets batch status to partially_processed with mixed results", () => {
@@ -241,10 +242,10 @@ describe("processTransactions", () => {
       invalid: [],
     }
 
-    processTransactions(company.id, parsedCsv, db)
+    new TransactionProcessor(company.id, parsedCsv, db).run()
 
     const batch = db.select().from(transferBatches).all()
-    expect(batch[0].status).toBe("partially_processed")
+    expect(batch[0].status).toBe(TransferBatchStatus.PARTIALLY_PROCESSED)
   })
 
   it("creates transaction records for successful transfers", () => {
@@ -254,11 +255,11 @@ describe("processTransactions", () => {
     ])
 
     const parsedCsv: ParsedCsv = {
-      valid: [{ from: ACCOUNT_A, to: ACCOUNT_B, amount: 25000, rowNumber: 1 }],
+      valid: [{ from: ACCOUNT_A, to: ACCOUNT_B, amount: 25_000, rowNumber: 1 }],
       invalid: [],
     }
 
-    processTransactions(company.id, parsedCsv, db)
+    new TransactionProcessor(company.id, parsedCsv, db).run()
 
     const txns = db.select().from(transactions).all()
     expect(txns).toHaveLength(1)
@@ -275,7 +276,7 @@ describe("processTransactions", () => {
       invalid: [],
     }
 
-    processTransactions(company.id, parsedCsv, db)
+    new TransactionProcessor(company.id, parsedCsv, db).run()
 
     const rejected = db.select().from(rejectedTransfers).all()
     expect(rejected).toHaveLength(1)
@@ -288,7 +289,7 @@ describe("processTransactions", () => {
       { accountNumber: "1111234522226789", balanceCents: 500_000 },
       { accountNumber: "1111234522221234", balanceCents: 1_000_000 },
       { accountNumber: "2222123433331212", balanceCents: 55_000 },
-      { accountNumber: "1212343433335665", balanceCents: 12_0000 },
+      { accountNumber: "1212343433335665", balanceCents: 120_000 },
       { accountNumber: "3212343433335755", balanceCents: 5_000_000 },
     ])
 
@@ -297,32 +298,32 @@ describe("processTransactions", () => {
         {
           from: "1111234522226789",
           to: "1212343433335665",
-          amount: 50000,
+          amount: 50_000,
           rowNumber: 1,
         },
         {
           from: "3212343433335755",
           to: "2222123433331212",
-          amount: 100000,
+          amount: 100_000,
           rowNumber: 2,
         },
         {
           from: "3212343433335755",
           to: "1111234522226789",
-          amount: 32050,
+          amount: 32_050,
           rowNumber: 3,
         },
         {
           from: "1111234522221234",
           to: "1212343433335665",
-          amount: 2560,
+          amount: 2_560,
           rowNumber: 4,
         },
       ],
       invalid: [],
     }
 
-    const result = processTransactions(company.id, parsedCsv, db)
+    const result = new TransactionProcessor(company.id, parsedCsv, db).run()
 
     expect(result.processedTransactions).toEqual({
       count: 4,

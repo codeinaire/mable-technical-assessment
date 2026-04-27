@@ -48,6 +48,30 @@ npx vitest run --project integration # integration only
 
 Integration tests require migrations: `npx drizzle-kit generate` before first run.
 
+## Database Commands
+
+```bash
+npm run db:setup   # creates db-file/, runs migrations, and seeds
+npm run db:reset   # deletes db and migrations, then runs setup fresh
+npm run db:migrate # generates and applies migrations
+npm run db:seed    # seeds initial data
+```
+
+To inspect the database directly:
+
+```bash
+sqlite3 ./db-file/mable-backend-assessment-prod.db
+```
+
+Useful SQLite commands:
+
+```
+.tables                        -- list all tables
+SELECT * FROM accounts;        -- view accounts
+SELECT * FROM balances;        -- view balances
+.quit                          -- exit
+```
+
 ## Notes
 
 - The SQLite package `better-sqlite3` is synchronous (hence no use of async/await), single-connection.
