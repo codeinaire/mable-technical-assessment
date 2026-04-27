@@ -4,8 +4,8 @@
 
 ```bash
 npm install
-cp .env.example .env  # set DATABASE_URL
-npm run db:setup       # run migrations and seed
+cp .env.example .env   # set DATABASE_URL
+npm run db:setup        # creates db-file/, runs migrations, and seeds
 ```
 
 ## Run
@@ -47,3 +47,9 @@ npx vitest run --project integration # integration only
 ```
 
 Integration tests require migrations: `npx drizzle-kit generate` before first run.
+
+## Notes
+
+- The SQLite package `better-sqlite3` is synchronous (hence no use of async/await), single-connection.
+- Zod is used for validation and some typing
+- Drizzle is used as the ORM and some typing

@@ -2,7 +2,7 @@ import { Hono } from "hono"
 import { HTTPException } from "hono/http-exception"
 import { createDb } from "./db/index.js"
 import { processTransactions } from "./services/processTransactions.js"
-import { parseCsv } from "./utilities/parseCsv.js"
+import { parseAndValidateCsv } from "./utilities/parseAndValidateCsv.js"
 
 const db = createDb()
 
@@ -31,7 +31,7 @@ routes.post("/api/v1/upload/transactions/:companyId", async (c) => {
     }
 
     const csv = await file.text()
-    const parsedCsv = parseCsv(csv)
+    const parsedCsv = parseAndValidateCsv(csv)
     const result = processTransactions(companyId, parsedCsv, db)
     return c.json(result)
   } catch (error: unknown) {
