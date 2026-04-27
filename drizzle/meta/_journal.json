@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1777276834070,
+      "tag": "0000_redundant_captain_universe",
+      "breakpoints": true
+    }
+  ]
+}
